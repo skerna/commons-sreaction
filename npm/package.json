@@ -1,0 +1,25 @@
+{
+  "name": "$scope_npm_package/$project.name",
+  "version" : "$version",
+  "description" : "Loggin for javascript",
+  "main" : "r2b-slog.js",
+  "author": "R2B",
+  "license": "Apache-2.0",
+  "homepage": "",
+  "bugs": {
+    "url": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "R2B",
+    "Loggin",
+    "JavaScript",
+    "JVM"
+  ],
+  "peerDependencies": {
+    $kotlinDependency
+  }
+}
