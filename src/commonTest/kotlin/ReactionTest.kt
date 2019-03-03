@@ -20,23 +20,77 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class ReactionTest{
+class ReactionTest {
+
+
     @Test
-    fun test() = runBlockingAction{
+    fun testResultOrDefault()  {
+        println("Test reaction action with excetion")
+        val result = Reaction.react { 2 * 100 / getDepMathValue() }
+                .setExceptionHandler(GlobalExceptionHandler)
+                .resultOrDefault(0)
+        assertEquals(result, 0, "expected 0 result")
+    }
+
+
+
+    @Test
+    fun testHandleExceptions()  {
+        println("Test reaction action with excetion")
+        val result = Reaction.react { executeUnsafeCode() }
+                .setExceptionHandler(GlobalExceptionHandler)
+                .result() ?: 0
+        assertEquals(result, 0, "expected 0 result")
+    }
+
+
+    @Test
+    fun testFailedReaction()  {
+        println("Test reaction action with excetion")
+        Reaction.react { 2 * 100 / getDepMathValue() }
+                .setHandler {
+                    println(it.cause())
+                    assertEquals(true, it.failed(), "expected 0 result")
+                }
+    }
+
+    @Test
+    fun testSuccessReaction()  {
+        println("Test success reaction")
+        val r = Reaction.succeededReact(10)
+
+        r.setHandler {
+            assertEquals(10,it.result(),"expected 10 value")
+        }
+    }
+
+    @Test
+    fun test() = runBlockingAction {
         println("Test Reaction with null returns")
-        val result = runTestingFuture()
-        println(result.failed())
-        println(result.cause())
-        println(result)
-        result.result()
+        val reaction = runTestingFuture()
+        assertEquals(true,reaction.resultIsNull(),"expected null result")
 
     }
 
-    suspend fun runTestingFuture() = Reaction.react(suspend {
+    suspend fun runTestingFuture() = Reaction.reactSuspend(suspend {
         null
     })
+
+
+    fun executeUnsafeCode(): Int {
+        throw IllegalStateException("Test exception")
+    }
+
+    /**
+     * Return dep math value
+     */
+    private fun getDepMathValue(): Int {
+        return 0
+    }
+
 }

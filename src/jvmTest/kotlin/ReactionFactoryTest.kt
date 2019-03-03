@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-import io.skerna.futures.AsyncResult
-import io.skerna.futures.ReactionFactory
-import io.skerna.futures.Handler
+import io.skerna.reaction.ReactionResult
+import io.skerna.reaction.ReactionFactory
+import io.skerna.reaction.Handler
 import org.junit.Test
 
 import kotlin.test.assertTrue
@@ -33,12 +33,12 @@ class ReactionFactoryTest {
     @Test
     fun future() {
         var future = factory.succeededReact("Casa")
-        future.setHandler(object :Handler<AsyncResult<String>>{
-            override fun handle(asyncResult: AsyncResult<String>) {
+        future.setHandler(object :Handler<ReactionResult<String>>{
+            override fun handle(reactionResult: ReactionResult<String>) {
                 println("****************")
-                assertTrue(asyncResult.succeeded().equals(true))
-                if(asyncResult.succeeded()){
-                    println(asyncResult.result())
+                assertTrue(reactionResult.succeeded().equals(true))
+                if(reactionResult.succeeded()){
+                    println(reactionResult.result())
                 }
             }
         })

@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
-import io.skerna.futures.impl.ReactionImpl
+import io.skerna.reaction.impl.ReactionImpl
 
 
 class ReactionFactory {

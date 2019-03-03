@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 import kotlin.js.JsName
 
@@ -28,7 +28,7 @@ import kotlin.js.JsName
 @JsName("Handler")
 interface Handler<E> {
     @JsName("handle")
-    fun handle(asyncResult:E)
+    fun handle(value:E)
 
     companion object {
         /**
@@ -41,8 +41,8 @@ interface Handler<E> {
         @JsName("create")
         fun<E> create(lambda: (asyncResult:E)->Unit): Handler<E> {
             return object:Handler<E>{
-                override fun handle(asyncResult: E) {
-                    lambda(asyncResult)
+                override fun handle(value: E) {
+                    lambda(value)
                 }
             }
         }

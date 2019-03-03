@@ -22,11 +22,11 @@
 
 @file:Suppress("USELESS_ELVIS")
 
-package io.skerna.futures
+package io.skerna.reaction
 
 import kotlin.js.JsName
 
-public interface AsyncResult<T> {
+public interface ReactionResult<T> {
 
   /**
    * The result of the operation. This will be null if the operation failed.
@@ -34,8 +34,10 @@ public interface AsyncResult<T> {
    * @return the result or null if the operation failed.
    */
   @JsName("result")
-  fun result():T?;
+  fun result():T?
 
+  @JsName("resultOrDefault")
+  fun resultOrDefault(default:T): T
 
   @JsName("resultIsNull")
   fun resultIsNull():Boolean{
@@ -56,7 +58,7 @@ public interface AsyncResult<T> {
    * @return true if it succeded or false otherwise
    */
   @JsName("succeeded")
-  fun succeeded():Boolean;
+  fun succeeded():Boolean
 
   /**
    * Did it fail?
@@ -64,7 +66,7 @@ public interface AsyncResult<T> {
    * @return true if it failed or false otherwise
    */
   @JsName("failed")
-  fun failed():Boolean;
+  fun failed():Boolean
 
   /**
    * Apply a {@code mapper} function on this async result.<p>
@@ -77,28 +79,32 @@ public interface AsyncResult<T> {
    * @return the mapped async result
    */
   @JsName("map")
-  fun<U>  map(mapper:Function<T,U>):AsyncResult<U> {
-    return  object:AsyncResult<U> {
+  fun<U>  map(mapper:Function<T,U>):ReactionResult<U> {
+    return  object:ReactionResult<U> {
       override fun  result():U?{
         if (succeeded()) {
-          return mapper(this@AsyncResult.result()!!);
+          return mapper(this@ReactionResult.result()!!)
         } else {
-          return null;
+          return null
         }
       }
 
+      override fun resultOrDefault(default: U): U {
+        throw IllegalStateException("Not allowed map with result or default value")
+      }
+
       override fun cause():Throwable {
-        return this@AsyncResult.cause()?:NoStackTraceThrowable("Unknow error cause, react not report the cause of the failure")
+        return this@ReactionResult.cause()?:NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
       }
 
       override fun succeeded():Boolean {
-        return this@AsyncResult.succeeded();
+        return this@ReactionResult.succeeded()
       }
 
       override fun failed():Boolean {
-        return this@AsyncResult.failed();
+        return this@ReactionResult.failed()
       }
-    };
+    }
   }
 
   /**
@@ -111,8 +117,8 @@ public interface AsyncResult<T> {
    * @param value the value that eventually completes the mapped async result
    * @return the mapped async result
    */
-  fun<V>  map(value:V):AsyncResult<V> {
-    return map { value };
+  fun<V>  map(value:V):ReactionResult<V> {
+    return map { value }
   }
 
   /**
@@ -127,7 +133,7 @@ public interface AsyncResult<T> {
    * @return the mapped async result
    */
  // fun<V>  mapEmpty():AsyncResult<V> {
- //   return map((V)null);
+ //   return map((V)null)
  // }
 
   /**
@@ -140,31 +146,35 @@ public interface AsyncResult<T> {
    * @param mapper the mapper function
    * @return the mapped async result
    */
-  fun  otherwise(mapper:(err:Throwable?)->T?):AsyncResult<T> {
-    return object:AsyncResult<T> {
+  fun  otherwise(mapper:(err:Throwable?)->T?):ReactionResult<T> {
+    return object:ReactionResult<T> {
 
       override fun result():T? {
-        if (this@AsyncResult.succeeded()) {
-          return this@AsyncResult.result();
-        } else if (this@AsyncResult.failed()) {
-          return mapper(this@AsyncResult.cause());
+        if (this@ReactionResult.succeeded()) {
+          return this@ReactionResult.result()
+        } else if (this@ReactionResult.failed()) {
+          return mapper(this@ReactionResult.cause())
         } else {
-          return null;
+          return null
         }
       }
 
+      override fun resultOrDefault(default: T): T {
+        throw IllegalStateException("Not allowed map with result or default value")
+      }
+
       override fun  cause():Throwable {
-        return NoStackTraceThrowable("Unknow error cause, react not report the cause of the failure");
+        return NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
       }
 
       override fun succeeded():Boolean {
-        return this@AsyncResult.succeeded() || this@AsyncResult.failed();
+        return this@ReactionResult.succeeded() || this@ReactionResult.failed()
       }
 
       override fun failed():Boolean {
-        return false;
+        return false
       }
-    };
+    }
   }
 
   /**
@@ -177,7 +187,7 @@ public interface AsyncResult<T> {
    * @param value the value that eventually completes the mapped async result
    * @return the mapped async result
    */
-  fun otherwise(value:T):AsyncResult<T> {
+  fun otherwise(value:T):ReactionResult<T> {
     return otherwise { value }
   }
 
@@ -192,7 +202,7 @@ public interface AsyncResult<T> {
    *
    * @return the mapped async result
    */
-  fun otherwiseEmpty():AsyncResult<T>  {
-    return otherwise{ null};
+  fun otherwiseEmpty():ReactionResult<T>  {
+    return otherwise{ null}
   }
 }

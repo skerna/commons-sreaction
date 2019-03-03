@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 class ReactionException: RuntimeException {
     constructor() : super()

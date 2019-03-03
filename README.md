@@ -1,29 +1,10 @@
-# SKERNA SFUTUTURES
+# SKERNA SREACTION
 
-Es una librería Multiplataforma, usando Kotlin 
-para programación asíncrona, siguiendo buenas practicas 
-de arquitectura hexagonal.
+Sreaction is not more than, wrapper of result value, which allows the client to obtain any throwable exception or result
+after invoking a function
 
-### Lenguajes Implementados
- - Java
- - Kotlin
- - Javascript
- 
-
-### Que oferece.
-
-Esta librería introduce dos objetos principales en tu sistema:
-
-- AsyncResult T Generic 
-- Reaction T Generic
-
-
-Reaction no es mas que una respuesta ante un evento disparado, por
-ejemplo: realizar una consulta de DB
-
-# Estados
-Una Reaction puede terminar en exito o fracaso
-  
+never use this on something that returns something like Option<Option<T>>
+instead, use flat result
 
 ## Motivación
 

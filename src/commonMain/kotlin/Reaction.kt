@@ -20,17 +20,15 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.JsName
 
 
-interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
+interface Reaction<T> : ReactionResult<T>, Handler<ReactionResult<T>> {
 
     /**
-     * Has the react completed?
+     * Has the reaction completed?
      *
      *
      * It's completed if it's either succeeded or failed.
@@ -44,25 +42,40 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
      * @return the handler for the result
      */
     @JsName("getHandler")
-    fun getHandler(): Handler<AsyncResult<T>>?
+    fun getHandler(): Handler<ReactionResult<T>>?
+
+    /**
+     * Set a handler of type exceptions
+     * 
+     * if the reaction has already  completed it will called immediately. else it will callend when the reaction
+     * change state to completed
+     * @param handler
+     * @return Reaction<T>
+     */
+    fun setExceptionHandler(handler:Handler<Throwable>):Reaction<T>
+
+
+    @JsName("setExceptionHandler")
+    fun setExceptionHandler(exHandler: (asyncResult:Throwable)->Unit):Reaction<T>
+
 
     /**
      * Set a handler for the result.
      *
      *
-     * If the react has already been completed it will be called immediately. Otherwise it will be called when the
-     * react is completed.
+     * If the reaction has already been completed it will be called immediately. Otherwise it will be called when the
+     * reaction is completed.
      *
      * @param handler  the Handler that will be called with the result
      * @return a reference to this, so it can be used fluently
      */
-    fun setHandler(handler: Handler<AsyncResult<T>>): Reaction<T>
+    fun setHandler(handler: Handler<ReactionResult<T>>): Reaction<T>
 
     @JsName("setHandler")
-    fun setHandler(handler: (asyncResult: AsyncResult<T>) -> Unit): Reaction<T>
+    fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T>
 
     /**
-     * Set the result. Any handler will be called, if there is one, and the react will be marked as completed.
+     * Set the result. Any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param result  the result
      */
@@ -70,13 +83,13 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     fun complete(result: T)
 
     /**
-     * Set a null result. Any handler will be called, if there is one, and the react will be marked as completed.
+     * Set a null result. Any handler will be called, if there is one, and the reaction will be marked as completed.
      */
     @JsName("completeEmpy")
     fun complete()
 
     /**
-     * Set the failure. Any handler will be called, if there is one, and the react will be marked as completed.
+     * Set the failure. Any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param cause  the failure cause
      */
@@ -84,7 +97,7 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     fun fail(cause: Throwable?)
 
     /**
-     * Try to set the failure. When it happens, any handler will be called, if there is one, and the react will be marked as completed.
+     * Try to set the failure. When it happens, any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param failureMessage  the failure message
      */
@@ -92,36 +105,36 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     fun fail(failureMessage: String)
 
     /**
-     * Set the failure. Any handler will be called, if there is one, and the react will be marked as completed.
+     * Set the failure. Any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param result  the result
-     * @return false when the react is already completed
+     * @return false when the reaction is already completed
      */
     @JsName("tryComplete")
     fun tryComplete(result: T?): Boolean
 
     /**
-     * Try to set the result. When it happens, any handler will be called, if there is one, and the react will be marked as completed.
+     * Try to set the result. When it happens, any handler will be called, if there is one, and the reaction will be marked as completed.
      *
-     * @return false when the react is already completed
+     * @return false when the reaction is already completed
      */
     @JsName("tryCompleteDefault")
     fun tryComplete(): Boolean
 
     /**
-     * Try to set the failure. When it happens, any handler will be called, if there is one, and the react will be marked as completed.
+     * Try to set the failure. When it happens, any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param cause  the failure cause
-     * @return false when the react is already completed
+     * @return false when the reaction is already completed
      */
     @JsName("tryFail")
     fun tryFail(cause: Throwable?): Boolean
 
     /**
-     * Try to set the failure. When it happens, any handler will be called, if there is one, and the react will be marked as completed.
+     * Try to set the failure. When it happens, any handler will be called, if there is one, and the reaction will be marked as completed.
      *
      * @param failureMessage  the failure message
-     * @return false when the react is already completed
+     * @return false when the reaction is already completed
      */
     @JsName("tryFailWithMessage")
     fun tryFail(failureMessage: String): Boolean
@@ -132,6 +145,13 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
      * @return the result or null if the operation failed.
      */
     override fun result(): T?
+
+    /**
+     * The result of the opreation . this never return null if the operation failed
+     * @param default, default value to return in error case or null
+     * @return T
+     */
+    override fun resultOrDefault(default:T): T
 
     /**
      * A Throwable describing failure. This will be null if the operation succeeded.
@@ -155,32 +175,32 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     override fun failed(): Boolean
 
     /**
-     * Compose this react with a provided `next` react.
+     * Compose this reaction with a provided `next` reaction.
      *
      *
      *
-     * When this (the one on which `compose` is called) react succeeds, the `handler` will be called with
-     * the completed value, this handler should complete the next react.
+     * When this (the one on which `compose` is called) reaction succeeds, the `handler` will be called with
+     * the completed value, this handler should complete the next reaction.
      *
      *
      *
-     * If the `handler` throws an exception, the returned react will be failed with this exception.
+     * If the `handler` throws an exception, the returned reaction will be failed with this exception.
      *
      *
      *
-     * When this react fails, the failure will be propagated to the `next` react and the `handler`
+     * When this reaction fails, the failure will be propagated to the `next` reaction and the `handler`
      * will not be called.
      *
      * @param handler the handler
-     * @param next the next react
-     * @return the next react, used for chaining
+     * @param next the next reaction
+     * @return the next reaction, used for chaining
      */
     fun <U> compose(handler: Handler<T>, next: Reaction<U>): Reaction<U> {
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     try {
-                        handler.handle(asyncResult.result()!!)
+                        handler.handle(reactionResult.result()!!)
                     } catch (err: Throwable) {
                         if (next.isCompleted()) {
                             throw err
@@ -189,7 +209,7 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
                     }
 
                 } else {
-                    next.fail(asyncResult.cause())
+                    next.fail(reactionResult.cause())
                 }
             }
 
@@ -198,37 +218,37 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Compose this react with a `mapper` function.
+     * Compose this reaction with a `mapper` function.
      *
      *
      *
-     * When this react (the one on which `compose` is called) succeeds, the `mapper` will be called with
-     * the completed value and this mapper returns another react object. This returned react completion will complete
-     * the react returned by this method call.
+     * When this reaction (the one on which `compose` is called) succeeds, the `mapper` will be called with
+     * the completed value and this mapper returns another reaction object. This returned reaction completion will complete
+     * the reaction returned by this method call.
      *
      *
      *
-     * If the `mapper` throws an exception, the returned react will be failed with this exception.
+     * If the `mapper` throws an exception, the returned reaction will be failed with this exception.
      *
      *
      *
-     * When this react fails, the failure will be propagated to the returned react and the `mapper`
+     * When this reaction fails, the failure will be propagated to the returned reaction and the `mapper`
      * will not be called.
      *
      * @param mapper the mapper function
-     * @return the composed react
+     * @return the composed reaction
      */
     fun <U> compose(mapper: Function<T, Reaction<U>>?): Reaction<U> {
         if (mapper == null) {
             throw NullPointerException()
         }
         val ret = react<U>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     val apply: Reaction<U>
                     try {
-                        apply = mapper(asyncResult.result()!!)
+                        apply = mapper(reactionResult.result()!!)
                     } catch (e: Throwable) {
                         ret.fail(e)
                         return
@@ -236,7 +256,7 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
 
                     apply.setHandler(ret)
                 } else {
-                    ret.fail(asyncResult.cause())
+                    ret.fail(reactionResult.cause())
                 }
             }
 
@@ -245,33 +265,33 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Apply a `mapper` function on this react.
+     * Apply a `mapper` function on this reaction.
      *
      *
      *
-     * When this react succeeds, the `mapper` will be called with the completed value and this mapper
-     * returns a value. This value will complete the react returned by this method call.
+     * When this reaction succeeds, the `mapper` will be called with the completed value and this mapper
+     * returns a value. This value will complete the reaction returned by this method call.
      *
      *
      *
-     * If the `mapper` throws an exception, the returned react will be failed with this exception.
+     * If the `mapper` throws an exception, the returned reaction will be failed with this exception.
      *
      *
      *
-     * When this react fails, the failure will be propagated to the returned react and the `mapper`
+     * When this reaction fails, the failure will be propagated to the returned reaction and the `mapper`
      * will not be called.
      *
      * @param mapper the mapper function
-     * @return the mapped react
+     * @return the mapped reaction
      */
     override fun <U> map(mapper: Function<T, U>): Reaction<U> {
         val ret = react<U>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     val mapped: U
                     try {
-                        mapped = mapper(asyncResult.result()!!)
+                        mapped = mapper(reactionResult.result()!!)
                     } catch (e: Throwable) {
                         ret.fail(e)
                         return
@@ -279,7 +299,7 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
 
                     ret.complete(mapped)
                 } else {
-                    ret.fail(asyncResult.cause())
+                    ret.fail(reactionResult.cause())
                 }
             }
 
@@ -288,27 +308,27 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Map the result of a react to a specific `value`.
+     * Map the result of a reaction to a specific `value`.
      *
      *
      *
-     * When this react succeeds, this `value` will complete the react returned by this method call.
+     * When this reaction succeeds, this `value` will complete the reaction returned by this method call.
      *
      *
      *
-     * When this react fails, the failure will be propagated to the returned react.
+     * When this reaction fails, the failure will be propagated to the returned reaction.
      *
-     * @param value the value that eventually completes the mapped react
-     * @return the mapped react
+     * @param value the value that eventually completes the mapped reaction
+     * @return the mapped reaction
      */
     override fun <V> map(value: V): Reaction<V> {
         val ret = react<V>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     ret.complete(value)
                 } else {
-                    ret.fail(asyncResult.cause())
+                    ret.fail(reactionResult.cause())
                 }
             }
 
@@ -317,60 +337,60 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Map the result of a react to `null`.
+     * Map the result of a reaction to `null`.
      *
      *
      *
-     * This is a conveniency for `react.map((T) null)` or `react.map((Void) null)`.
+     * This is a conveniency for `reaction.map((T) null)` or `reaction.map((Void) null)`.
      *
      *
      *
-     * When this react succeeds, `null` will complete the react returned by this method call.
+     * When this reaction succeeds, `null` will complete the reaction returned by this method call.
      *
      *
      *
-     * When this react fails, the failure will be propagated to the returned react.
+     * When this reaction fails, the failure will be propagated to the returned reaction.
      *
-     * @return the mapped react
+     * @return the mapped reaction
      */
     //  fun <V> mapEmpty(): Reaction<V> {
     //     return AsyncResult.mapEmpty()
     // }
 
     /**
-     * Succeed or fail this react with the [AsyncResult] asyncResult.
+     * Succeed or fail this reaction with the [ReactionResult] asyncResult.
      *
-     * @param asyncResult the async result to getHandler
+     * @param reactionResult the async result to getHandler
      */
-    override fun handle(asyncResult: AsyncResult<T>)
+    override fun handle(reactionResult: ReactionResult<T>)
 
     /**
-     * @return an handler completing this react
+     * @return an handler completing this reaction
      */
-    fun completer(): Handler<AsyncResult<T>> {
+    fun completer(): Handler<ReactionResult<T>> {
         return this
     }
 
     /**
      * Handles a failure of this Reaction by returning the result of another Reaction.
-     * If the mapper fails, then the returned react will be failed with this failure.
+     * If the mapper fails, then the returned reaction will be failed with this failure.
      *
-     * @param mapper A function which takes the exception of a failure and returns a new react.
-     * @return A recovered react
+     * @param mapper A function which takes the exception of a failure and returns a new reaction.
+     * @return A recovered reaction
      */
     fun recover(mapper: Function<Throwable, Reaction<T>>?): Reaction<T> {
         if (mapper == null) {
             throw NullPointerException()
         }
         val ret = react<T>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     ret.complete(result()!!)
                 } else {
                     val mapped: Reaction<T>
                     try {
-                        mapped = mapper(asyncResult.cause())
+                        mapped = mapper(reactionResult.cause())
                     } catch (e: Throwable) {
                         ret.fail(e)
                         return
@@ -385,38 +405,38 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Apply a `mapper` function on this react.
+     * Apply a `mapper` function on this reaction.
      *
      *
      *
-     * When this react fails, the `mapper` will be called with the completed value and this mapper
-     * returns a value. This value will complete the react returned by this method call.
+     * When this reaction fails, the `mapper` will be called with the completed value and this mapper
+     * returns a value. This value will complete the reaction returned by this method call.
      *
      *
      *
-     * If the `mapper` throws an exception, the returned react will be failed with this exception.
+     * If the `mapper` throws an exception, the returned reaction will be failed with this exception.
      *
      *
      *
-     * When this react succeeds, the result will be propagated to the returned react and the `mapper`
+     * When this reaction succeeds, the result will be propagated to the returned reaction and the `mapper`
      * will not be called.
      *
      * @param mapper the mapper function
-     * @return the mapped react
+     * @return the mapped reaction
      */
     fun otherwise(mapper: Function<Throwable, T>?): Reaction<T> {
         if (mapper == null) {
             throw NullPointerException()
         }
         val ret = react<T>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     ret.complete(result()!!)
                 } else {
                     val value: T
                     try {
-                        value = mapper(asyncResult.cause())
+                        value = mapper(reactionResult.cause())
                     } catch (e: Throwable) {
                         ret.fail(e)
                         return
@@ -431,24 +451,24 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Map the failure of a react to a specific `value`.
+     * Map the failure of a reaction to a specific `value`.
      *
      *
      *
-     * When this react fails, this `value` will complete the react returned by this method call.
+     * When this reaction fails, this `value` will complete the reaction returned by this method call.
      *
      *
      *
-     * When this react succeeds, the result will be propagated to the returned react.
+     * When this reaction succeeds, the result will be propagated to the returned reaction.
      *
-     * @param value the value that eventually completes the mapped react
-     * @return the mapped react
+     * @param value the value that eventually completes the mapped reaction
+     * @return the mapped reaction
      */
     override fun otherwise(value: T): Reaction<T> {
         val ret = react<T>()
-        setHandler(object : Handler<AsyncResult<T>> {
-            override fun handle(asyncResult: AsyncResult<T>) {
-                if (asyncResult.succeeded()) {
+        setHandler(object : Handler<ReactionResult<T>> {
+            override fun handle(reactionResult: ReactionResult<T>) {
+                if (reactionResult.succeeded()) {
                     ret.complete(result()!!)
                 } else {
                     ret.complete(value)
@@ -459,21 +479,21 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
     }
 
     /**
-     * Map the failure of a react to `null`.
+     * Map the failure of a reaction to `null`.
      *
      *
      *
-     * This is a convenience for `react.otherwise((T) null)`.
+     * This is a convenience for `reaction.otherwise((T) null)`.
      *
      *
      *
-     * When this react fails, the `null` value will complete the react returned by this method call.
+     * When this reaction fails, the `null` value will complete the reaction returned by this method call.
      *
      *
      *
-     * When this react succeeds, the result will be propagated to the returned react.
+     * When this reaction succeeds, the result will be propagated to the returned reaction.
      *
-     * @return the mapped react
+     * @return the mapped reaction
      */
     //   override fun otherwiseEmpty(): Reaction<T> {
 //        return super@AsyncResult.otherwiseEmpty()
@@ -481,7 +501,7 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
 
     companion object {
 
-        suspend fun <T> react(action: suspend () -> T): Reaction<T> {
+        suspend fun <T> reactSuspend(action: suspend () -> T): Reaction<T> {
             val fut = react<T>()
             try {
                 var result:T? = action()
@@ -516,11 +536,11 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
         }
 
         /**
-         * Create a react that hasn't completed yet and that is passed to the `handler` before it is returned.
+         * Create a reaction that hasn't completed yet and that is passed to the `handler` before it is returned.
          *
          * @param handler the handler
          * @param <T> the result type
-         * @return the react.
+         * @return the reaction.
         </T> */
         fun <T> react(handler: Handler<Reaction<T>>): Reaction<T> {
             val fut = react<T>()
@@ -529,53 +549,53 @@ interface Reaction<T> : AsyncResult<T>, Handler<AsyncResult<T>> {
         }
 
         /**
-         * Create a react that hasn't completed yet
+         * Create a reaction that hasn't completed yet
          *
          * @param <T>  the result type
-         * @return  the react
+         * @return  the reaction
         </T> */
         fun <T> react(): Reaction<T> {
             return factory.reaction()
         }
 
         /**
-         * Create a succeeded react with a null result
+         * Create a succeeded reaction with a null result
          *
          * @param <T>  the result type
-         * @return  the react
+         * @return  the reaction
         </T> */
         fun succeededReact(): Reaction<Nothing?> {
             return factory.succeededReact()
         }
 
         /**
-         * Created a succeeded react with the specified result.
+         * Created a succeeded reaction with the specified result.
          *
          * @param result  the result
          * @param <T>  the result type
-         * @return  the react
+         * @return  the reaction
         </T> */
         fun <T> succeededReact(result: T): Reaction<T> {
             return factory.succeededReact(result)
         }
 
         /**
-         * Create a failed react with the specified failure cause.
+         * Create a failed reaction with the specified failure cause.
          *
          * @param t  the failure cause as a Throwable
          * @param <T>  the result type
-         * @return  the react
+         * @return  the reaction
         </T> */
         fun <T> failedReact(t: Throwable): Reaction<T> {
             return factory.failedReact(t)
         }
 
         /**
-         * Create a failed react with the specified failure message.
+         * Create a failed reaction with the specified failure message.
          *
          * @param failureMessage  the failure message
          * @param <T>  the result type
-         * @return  the react
+         * @return  the reaction
         </T> */
         fun <T> failedReact(failureMessage: String): Reaction<T> {
             return factory.failureReact(failureMessage)

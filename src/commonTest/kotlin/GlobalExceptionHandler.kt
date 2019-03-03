@@ -20,5 +20,15 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
+/**
+ * @author Ronald Cárdenas
+ * project: skerna-libsmeta created at 03/03/19
+ **/
+
+object GlobalExceptionHandler:Handler<Throwable>{
+    override fun handle(value: Throwable) {
+        println("Do some with throw value")
+    }
+}

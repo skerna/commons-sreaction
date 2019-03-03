@@ -20,6 +20,6 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 expect fun runBlockingAction(block: suspend () -> Unit)

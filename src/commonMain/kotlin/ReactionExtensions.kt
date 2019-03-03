@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,7 +56,7 @@ fun<T> Deferred<T>.asReaction():Reaction<T> {
 
 
 /**
- * Transforma una corutina en un react que acepta listener antes de establecer el Reaction result
+ * Transforma una corutina en un reactSuspend que acepta listener antes de establecer el Reaction result
  * como completado exitosamente o en error
  * @param errorListener
  * @param successListener

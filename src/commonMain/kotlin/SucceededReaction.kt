@@ -20,11 +20,11 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 class SucceededReaction<T>(private val result: T) : Reaction<T> {
     /**
-     * Has the react completed?
+     * Has the reactSuspend completed?
      * <p>
      * It's completed if it's either succeeded or failed.
      *
@@ -37,16 +37,24 @@ class SucceededReaction<T>(private val result: T) : Reaction<T> {
     /**
      * @return the handler for the result
      */
-    override fun getHandler(): Handler<AsyncResult<T>>? {
+    override fun getHandler(): Handler<ReactionResult<T>>? {
         return null
     }
 
-    override fun setHandler(handler: Handler<AsyncResult<T>>): Reaction<T> {
+    override fun setExceptionHandler(handler: Handler<Throwable>): Reaction<T> {
+        throw IllegalStateException("Not allowed exception handler in success reaction")
+    }
+
+    override fun setExceptionHandler(exHandler: (asyncResult: Throwable) -> Unit): Reaction<T> {
+        throw IllegalStateException("Not allowed exception handler in success reaction")
+    }
+
+    override fun setHandler(handler: Handler<ReactionResult<T>>): Reaction<T> {
         handler.handle(this)
         return this
     }
 
-    override fun setHandler(handler: (asyncResult: AsyncResult<T>) -> Unit): Reaction<T> {
+    override fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T> {
         handler(this)
         return this
     }
@@ -87,6 +95,10 @@ class SucceededReaction<T>(private val result: T) : Reaction<T> {
         return result
     }
 
+    override fun resultOrDefault(default: T): T {
+        return result?:default
+    }
+
     override fun cause(): Throwable {
         throw IllegalStateException("Result is already complete: succeeded")
     }
@@ -99,7 +111,7 @@ class SucceededReaction<T>(private val result: T) : Reaction<T> {
         return false
     }
 
-    override fun handle(asyncResult: AsyncResult<T>) {
+    override fun handle(reactionResult: ReactionResult<T>) {
         throw IllegalStateException("Result is already complete: succeeded")
     }
 

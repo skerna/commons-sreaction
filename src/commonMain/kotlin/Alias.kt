@@ -20,6 +20,6 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 typealias Function<I, O> = (input: I) -> O

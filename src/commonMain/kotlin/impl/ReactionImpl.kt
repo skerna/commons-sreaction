@@ -20,26 +20,27 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures.impl
+package io.skerna.reaction.impl
 
 import io.skerna.lbase.synchronized
-import io.skerna.futures.*
+import io.skerna.reaction.*
 import kotlin.jvm.Synchronized
 
 
 /**
- * Create a react that hasn't completed yet
+ * Create a reactSuspend that hasn't completed yet
  */
-internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
+internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
 
     private var failed: Boolean = false
     private var succeeded: Boolean = false
-    private var handler: Handler<AsyncResult<T>>? = null
+    private var handler: Handler<ReactionResult<T>>? = null
     private var result: T? = null
     private var throwable: Throwable? = null
+    private var handlerException:Handler<Throwable>? = null
 
     /**
-     * Has the react completed?
+     * Has the reactSuspend completed?
      *
      *
      * It's completed if it's either succeeded or failed.
@@ -54,14 +55,23 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
      * The result of the operation. This will be null if the operation failed.
      */
     override fun result(): T? {
+        if(failed()){
+            this.handlerException?.handle(cause())
+        }
         return result
+    }
+    /**
+     * The result of the operation. This never be null if the operation failed.
+     */
+    override fun resultOrDefault(default: T): T {
+        return result?:default
     }
 
     /**
      * An exception describing failure. This will be null if the operation succeeded.
      */
     override fun cause(): Throwable {
-        return throwable?:NoStackTraceThrowable("Unknow error cause, react not report the cause of the failure")
+        return throwable?:NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
     }
 
     /**
@@ -80,10 +90,18 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
         return failed
     }
 
+    override fun setExceptionHandler(handler: Handler<Throwable>) = apply {
+        this.handlerException = handler
+    }
+
+    override fun setExceptionHandler(exHandler: (asyncResult: Throwable) -> Unit)= apply {
+        this.handlerException = Handler.create { exHandler(it) }
+    }
+
     /**
      * Set a handler for the result. It will get called when it's complete
      */
-    override fun setHandler(handler: Handler<AsyncResult<T>>): Reaction<T> {
+    override fun setHandler(handler: Handler<ReactionResult<T>>) = apply{
         var callHandler: Boolean = isCompleted()
 
         synchronized(this){
@@ -91,25 +109,18 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
                 this.handler = handler
             }
         }
-        //  synchronized(this) {
-        // if (!callHandler) {
-        //        this.handler = handler
-        //     }
-        // }
         if (callHandler) {
             handler.handle(this)
         }
-        return this
     }
 
-    override fun setHandler(handler: (asyncResult: AsyncResult<T>) -> Unit): Reaction<T> {
+    override fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit) =  apply{
         var handlerParsed = Handler.create(handler)
         setHandler(handlerParsed)
-        return this
     }
 
     @Synchronized
-    override fun getHandler(): Handler<AsyncResult<T>> {
+    override fun getHandler(): Handler<ReactionResult<T>> {
         return handler!!
     }
 
@@ -140,7 +151,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
 
 
     override fun tryComplete(result: T?): Boolean {
-        var h: Handler<AsyncResult<T>>? = handler
+        var h: Handler<ReactionResult<T>>? = handler
         synchronized(this){
             if (succeeded || failed) {
                 return false
@@ -150,14 +161,6 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
             handler = null
         }
 
-        //synchronized(this) {
-        //    if (succeeded || failed) {
-        //        return false
-        //    }
-        //    this.result = result
-        //    succeeded = true
-        // handler = null
-       // }
         if (h != null) {
            h.handle(this)
         }
@@ -172,26 +175,26 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
         }
     }
 
-    override fun completer(): Handler<AsyncResult<T>> {
+    override fun completer(): Handler<ReactionResult<T>> {
         return this
     }
 
     /**
-     * Succeed or fail this react with the [AsyncResult] event.
+     * Succeed or fail this reactSuspend with the [ReactionResult] event.
      *
-     * @param asyncResult the async result to getHandler
+     * @param reactionResult the async result to getHandler
      */
-    override fun handle(asyncResult: AsyncResult<T>) {
-        if (asyncResult.succeeded()) {
-            complete(asyncResult.result()!!)
+    override fun handle(value: ReactionResult<T>) {
+        if (value.succeeded()) {
+            complete(value.result()!!)
         } else {
-            fail(asyncResult.cause())
+            fail(value.cause())
         }
     }
 
 
     override fun tryFail(cause: Throwable?): Boolean {
-        var h: Handler<AsyncResult<T>>?=null
+        var h: Handler<ReactionResult<T>>?=null
         synchronized(this){
             if (succeeded || failed) {
                 return false
@@ -201,15 +204,9 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
             h = handler
             handler = null
         }
-        //synchronized(this) {
-        //    if (succeeded || failed) {
-        //        return false
-        //    }
-        //    this.throwable = cause ?: NoStackTraceThrowable(null)
-        //    failed = true
-        //    h = handler
-        //    handler = null
-        //}
+        if(cause!=null){
+            handlerException?.handle(cause)
+        }
         if (h != null) {
             h?.handle(this)?:throw IllegalStateException("Handler not initialized")
         }
@@ -229,20 +226,12 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<AsyncResult<T>> {
                 "Reaction{cause=" + throwable!!.message + "}"
             } else "Reaction{unresolved}"
         }
-        //synchronized(this) {
-        //    if (succeeded) {
-        //        return "Reaction{result=$result}"
-        //    }
-        //    return if (failed) {
-        //        "Reaction{cause=" + throwable!!.message + "}"
-        //    } else "Reaction{unresolved}"
-        //}
     }
 
     /**
-     * Try to set the result. When it happens, any handler will be called, if there is one, and the react will be marked as completed.
+     * Try to set the result. When it happens, any handler will be called, if there is one, and the reactSuspend will be marked as completed.
      *
-     * @return false when the react is already completed
+     * @return false when the reactSuspend is already completed
      */
     override fun tryComplete(): Boolean {
         return tryComplete(null)

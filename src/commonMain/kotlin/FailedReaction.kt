@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.futures
+package io.skerna.reaction
 
 import kotlin.js.JsName
 
@@ -32,7 +32,7 @@ class FailedReaction<T> : Reaction<T> {
 
 
     /**
-     * Create a react that has already failed
+     * Create a reactSuspend that has already failed
      * @param t the throwable
      */
     internal constructor(t: Throwable?) {
@@ -40,13 +40,13 @@ class FailedReaction<T> : Reaction<T> {
     }
 
     /**
-     * Create a react that has already failed
+     * Create a reactSuspend that has already failed
      * @param failureMessage the failure message
      */
     internal constructor(failureMessage: String) : this(NoStackTraceThrowable(failureMessage)) {}
 
     /**
-     * Has the react completed?
+     * Has the reactSuspend completed?
      * <p>
      * It's completed if it's either succeeded or failed.
      *
@@ -59,16 +59,24 @@ class FailedReaction<T> : Reaction<T> {
     /**
      * @return the handler for the result
      */
-    override fun getHandler(): Handler<AsyncResult<T>>? {
+    override fun getHandler(): Handler<ReactionResult<T>>? {
         return null
     }
 
-    override fun setHandler(handler: Handler<AsyncResult<T>>): Reaction<T> {
+    override fun setExceptionHandler(exHandler: Handler<Throwable>)= apply {
+        exHandler.handle(cause())
+    }
+
+    override fun setExceptionHandler(exHandler: (asyncResult: Throwable) -> Unit) = apply {
+        Handler.create<Throwable> { exHandler(it) }
+    }
+
+    override fun setHandler(handler: Handler<ReactionResult<T>>): Reaction<T> {
         handler.handle(this)
         return this
     }
 
-    override fun setHandler(handler: (asyncResult: AsyncResult<T>) -> Unit): Reaction<T> {
+    override fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T> {
         handler(this)
         return this
     }
@@ -109,6 +117,10 @@ class FailedReaction<T> : Reaction<T> {
         return null
     }
 
+    override fun resultOrDefault(default: T): T {
+        return default
+    }
+
     override fun cause(): Throwable {
         return cause
     }
@@ -121,7 +133,7 @@ class FailedReaction<T> : Reaction<T> {
         return true
     }
 
-    override fun handle(asyncResult: AsyncResult<T>) {
+    override fun handle(reactionResult: ReactionResult<T>) {
         throw IllegalStateException("Result is already complete: failed")
     }
 
