@@ -22,6 +22,8 @@
 
 package io.skerna.reaction
 
+import io.skerna.commons.sreaction.Reaction
+import io.skerna.commons.sreaction.runBlockingAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

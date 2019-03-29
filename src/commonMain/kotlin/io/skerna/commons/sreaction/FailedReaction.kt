@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 import kotlin.js.JsName
 

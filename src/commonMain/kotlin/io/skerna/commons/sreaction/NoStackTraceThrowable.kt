@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-expect fun runBlockingAction(block: suspend () -> Unit)
+class NoStackTraceThrowable(message: String?) : Throwable(message) {
+
+}

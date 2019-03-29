@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +41,7 @@ suspend fun<T> Reaction<T>.asCoroutine() = suspendCoroutine<T>{ next ->
 }
 
 @ExperimentalCoroutinesApi
-fun<T> Deferred<T>.asReaction():Reaction<T> {
+fun<T> Deferred<T>.asReaction(): Reaction<T> {
     val future = Reaction.react<T>()
 
     invokeOnCompletion {
@@ -65,7 +65,7 @@ fun<T> Deferred<T>.asReaction():Reaction<T> {
  * a resuelto
  */
 @ExperimentalCoroutinesApi
-fun<T> Deferred<T>.asReaction(errorListener:(Throwable)->Unit, successListener:(()->Unit)?=null):Reaction<T> {
+fun<T> Deferred<T>.asReaction(errorListener:(Throwable)->Unit, successListener:(()->Unit)?=null): Reaction<T> {
     val future = Reaction.react<T>()
     invokeOnCompletion {
         if (it != null) {
@@ -95,7 +95,7 @@ fun<T> Deferred<T>.asReaction(errorListener:(Throwable)->Unit, successListener:(
 
 
 
-fun<T> Deferred<T>.asReactionBoolean():Reaction<Boolean> {
+fun<T> Deferred<T>.asReactionBoolean(): Reaction<Boolean> {
     val future = Reaction.react<Boolean>()
 
     invokeOnCompletion {
@@ -110,7 +110,7 @@ fun<T> Deferred<T>.asReactionBoolean():Reaction<Boolean> {
 }
 
 @ExperimentalCoroutinesApi
-fun<T,R> Reaction<T>.mapWithCoroutine(block:suspend (data:T)->R):Reaction<R>{
+fun<T,R> Reaction<T>.mapWithCoroutine(block:suspend (data:T)->R): Reaction<R> {
     return GlobalScope.async {
         val a = asCoroutine()
         block(a)

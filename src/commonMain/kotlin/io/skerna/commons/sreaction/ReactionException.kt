@@ -20,10 +20,12 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-import kotlin.math.log
-
-actual fun runBlockingAction(block: suspend () -> Unit) = kotlinx.coroutines.runBlocking {
-    block()
+class ReactionException: RuntimeException {
+    constructor() : super()
+    constructor(message: String?) : super(message)
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+    constructor(cause: Throwable?) : super(cause)
 }
+

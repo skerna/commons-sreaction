@@ -20,12 +20,6 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-class ReactionException: RuntimeException {
-    constructor() : super()
-    constructor(message: String?) : super(message)
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
-    constructor(cause: Throwable?) : super(cause)
-}
-
+expect fun runBlockingAction(block: suspend () -> Unit)

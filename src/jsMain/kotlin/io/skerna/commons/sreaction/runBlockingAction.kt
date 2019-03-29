@@ -20,6 +20,12 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-typealias Function<I, O> = (input: I) -> O
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.promise
+
+actual fun runBlockingAction(block: suspend () -> Unit): dynamic = GlobalScope.promise { block() }.then {
+}.catch {
+    console.error(it)
+}

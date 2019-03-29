@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 import kotlin.js.JsName
 
@@ -52,11 +52,11 @@ interface Reaction<T> : ReactionResult<T>, Handler<ReactionResult<T>> {
      * @param handler
      * @return Reaction<T>
      */
-    fun setExceptionHandler(handler:Handler<Throwable>):Reaction<T>
+    fun setExceptionHandler(handler: Handler<Throwable>): Reaction<T>
 
 
     @JsName("setExceptionHandler")
-    fun setExceptionHandler(exHandler: (asyncResult:Throwable)->Unit):Reaction<T>
+    fun setExceptionHandler(exHandler: (asyncResult:Throwable)->Unit): Reaction<T>
 
 
     /**

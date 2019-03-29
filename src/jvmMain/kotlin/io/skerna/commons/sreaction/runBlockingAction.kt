@@ -20,8 +20,10 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-class NoStackTraceThrowable(message: String?) : Throwable(message) {
+import kotlin.math.log
 
+actual fun runBlockingAction(block: suspend () -> Unit) = kotlinx.coroutines.runBlocking {
+    block()
 }

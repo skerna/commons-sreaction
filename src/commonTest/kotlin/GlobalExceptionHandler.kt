@@ -22,12 +22,14 @@
 
 package io.skerna.reaction
 
+import io.skerna.commons.sreaction.Handler
+
 /**
  * @author Ronald Cárdenas
  * project: skerna-libsmeta created at 03/03/19
  **/
 
-object GlobalExceptionHandler:Handler<Throwable>{
+object GlobalExceptionHandler: Handler<Throwable> {
     override fun handle(value: Throwable) {
         println("Do some with throw value")
     }

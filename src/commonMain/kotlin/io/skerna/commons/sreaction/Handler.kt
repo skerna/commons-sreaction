@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 import kotlin.js.JsName
 
@@ -40,7 +40,7 @@ interface Handler<E> {
          */
         @JsName("create")
         fun<E> create(lambda: (asyncResult:E)->Unit): Handler<E> {
-            return object:Handler<E>{
+            return object: Handler<E> {
                 override fun handle(value: E) {
                     lambda(value)
                 }

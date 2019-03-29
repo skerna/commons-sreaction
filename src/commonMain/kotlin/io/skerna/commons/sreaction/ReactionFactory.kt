@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
-import io.skerna.reaction.impl.ReactionImpl
+import io.skerna.commons.sreaction.impl.ReactionImpl
 
 
 class ReactionFactory {
@@ -50,6 +50,6 @@ class ReactionFactory {
 
     companion object {
 
-        private val EMPTY:Reaction<Nothing?> = SucceededReaction(null)
+        private val EMPTY: Reaction<Nothing?> = SucceededReaction(null)
     }
 }

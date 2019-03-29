@@ -22,7 +22,7 @@
 
 @file:Suppress("USELESS_ELVIS")
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 import kotlin.js.JsName
 
@@ -79,8 +79,8 @@ public interface ReactionResult<T> {
    * @return the mapped async result
    */
   @JsName("map")
-  fun<U>  map(mapper:Function<T,U>):ReactionResult<U> {
-    return  object:ReactionResult<U> {
+  fun<U>  map(mapper: Function<T, U>): ReactionResult<U> {
+    return  object: ReactionResult<U> {
       override fun  result():U?{
         if (succeeded()) {
           return mapper(this@ReactionResult.result()!!)
@@ -94,7 +94,7 @@ public interface ReactionResult<T> {
       }
 
       override fun cause():Throwable {
-        return this@ReactionResult.cause()?:NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
+        return this@ReactionResult.cause()?: NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
       }
 
       override fun succeeded():Boolean {
@@ -117,7 +117,7 @@ public interface ReactionResult<T> {
    * @param value the value that eventually completes the mapped async result
    * @return the mapped async result
    */
-  fun<V>  map(value:V):ReactionResult<V> {
+  fun<V>  map(value:V): ReactionResult<V> {
     return map { value }
   }
 
@@ -146,8 +146,8 @@ public interface ReactionResult<T> {
    * @param mapper the mapper function
    * @return the mapped async result
    */
-  fun  otherwise(mapper:(err:Throwable?)->T?):ReactionResult<T> {
-    return object:ReactionResult<T> {
+  fun  otherwise(mapper:(err:Throwable?)->T?): ReactionResult<T> {
+    return object: ReactionResult<T> {
 
       override fun result():T? {
         if (this@ReactionResult.succeeded()) {
@@ -187,7 +187,7 @@ public interface ReactionResult<T> {
    * @param value the value that eventually completes the mapped async result
    * @return the mapped async result
    */
-  fun otherwise(value:T):ReactionResult<T> {
+  fun otherwise(value:T): ReactionResult<T> {
     return otherwise { value }
   }
 
@@ -202,7 +202,7 @@ public interface ReactionResult<T> {
    *
    * @return the mapped async result
    */
-  fun otherwiseEmpty():ReactionResult<T>  {
+  fun otherwiseEmpty(): ReactionResult<T> {
     return otherwise{ null}
   }
 }

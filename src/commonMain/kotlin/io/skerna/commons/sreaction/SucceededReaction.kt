@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction
+package io.skerna.commons.sreaction
 
 class SucceededReaction<T>(private val result: T) : Reaction<T> {
     /**

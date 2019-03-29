@@ -20,10 +20,13 @@
  * SOFTWARE.
  */
 
-package io.skerna.reaction.impl
+package io.skerna.commons.sreaction.impl
 
-import io.skerna.lbase.synchronized
-import io.skerna.reaction.*
+import io.skerna.commons.slbase.synchronized
+import io.skerna.commons.sreaction.Handler
+import io.skerna.commons.sreaction.NoStackTraceThrowable
+import io.skerna.commons.sreaction.Reaction
+import io.skerna.commons.sreaction.ReactionResult
 import kotlin.jvm.Synchronized
 
 
@@ -37,7 +40,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
     private var handler: Handler<ReactionResult<T>>? = null
     private var result: T? = null
     private var throwable: Throwable? = null
-    private var handlerException:Handler<Throwable>? = null
+    private var handlerException: Handler<Throwable>? = null
 
     /**
      * Has the reactSuspend completed?
@@ -71,7 +74,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
      * An exception describing failure. This will be null if the operation succeeded.
      */
     override fun cause(): Throwable {
-        return throwable?:NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
+        return throwable?: NoStackTraceThrowable("Unknow error cause, reactSuspend not report the cause of the failure")
     }
 
     /**
@@ -104,7 +107,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
     override fun setHandler(handler: Handler<ReactionResult<T>>) = apply{
         var callHandler: Boolean = isCompleted()
 
-        synchronized(this){
+        synchronized(this) {
             if (!callHandler) {
                 this.handler = handler
             }
@@ -152,7 +155,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
 
     override fun tryComplete(result: T?): Boolean {
         var h: Handler<ReactionResult<T>>? = handler
-        synchronized(this){
+        synchronized(this) {
             if (succeeded || failed) {
                 return false
             }
@@ -195,7 +198,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
 
     override fun tryFail(cause: Throwable?): Boolean {
         var h: Handler<ReactionResult<T>>?=null
-        synchronized(this){
+        synchronized(this) {
             if (succeeded || failed) {
                 return false
             }
@@ -218,7 +221,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
     }
 
     override fun toString(): String {
-        synchronized(this){
+        synchronized(this) {
             if (succeeded) {
                 return "Reaction{result=$result}"
             }

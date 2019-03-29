@@ -23,7 +23,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-common"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:skerna-slbase-metadata:$skernaVersion"
+                api "io.skerna.commons:skerna-slbase-metadata:$skernaVersion"
             }
         }
         commonTest {
@@ -36,7 +36,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:skerna-slbase-jvm:$skernaVersion"
+                api "io.skerna.commons:skerna-slbase-jvm:$skernaVersion"
             }
         }
         jvmTest {
@@ -51,7 +51,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:skerna-slbase-js:$skernaVersion"
+                api "io.skerna.commons:skerna-slbase-js:$skernaVersion"
             }
         }
         jsTest {

@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-import io.skerna.reaction.ReactionResult
-import io.skerna.reaction.ReactionFactory
-import io.skerna.reaction.Handler
+import io.skerna.commons.sreaction.ReactionResult
+import io.skerna.commons.sreaction.ReactionFactory
+import io.skerna.commons.sreaction.Handler
 import org.junit.Test
 
 import kotlin.test.assertTrue
@@ -33,7 +33,7 @@ class ReactionFactoryTest {
     @Test
     fun future() {
         var future = factory.succeededReact("Casa")
-        future.setHandler(object :Handler<ReactionResult<String>>{
+        future.setHandler(object : Handler<ReactionResult<String>> {
             override fun handle(reactionResult: ReactionResult<String>) {
                 println("****************")
                 assertTrue(reactionResult.succeeded().equals(true))
