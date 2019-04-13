@@ -13,11 +13,11 @@ pluginManagement {
 }
 def isUncluded = gradle.parent != null
 if(isUncluded){
-    includeBuild("../skerna-slbase"){
+    includeBuild("../commons-slbase"){
         dependencySubstitution {
-            substitute module('io.skerna.commons:skerna-slbase-metadata') with project(':')
-            substitute module('io.skerna.commons:skerna-slbase-jvm') with project(':')
-            substitute module('io.skerna.commons:skerna-slbase-js') with project(':')
+            substitute module('io.skerna.commons:commons-slbase-metadata') with project(':')
+            substitute module('io.skerna.commons:commons-slbase-jvm') with project(':')
+            substitute module('io.skerna.commons:commons-slbase-js') with project(':')
         }
     }
 }
