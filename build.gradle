@@ -6,6 +6,7 @@ apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 kotlin {
     jvm {
