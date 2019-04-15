@@ -15,9 +15,9 @@ def isUncluded = gradle.parent != null
 if(isUncluded){
     includeBuild("../commons-slbase"){
         dependencySubstitution {
-            substitute module('io.skerna.commons:commons-slbase-metadata') with project(':')
-            substitute module('io.skerna.commons:commons-slbase-jvm') with project(':')
-            substitute module('io.skerna.commons:commons-slbase-js') with project(':')
+            substitute module('com.gitlab.skerna.libs:commons-slbase-metadata') with project(':')
+            substitute module('com.gitlab.skerna.libs:commons-slbase-jvm') with project(':')
+            substitute module('com.gitlab.skerna.libs:commons-slbase-js') with project(':')
         }
     }
 }
