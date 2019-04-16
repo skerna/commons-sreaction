@@ -1,12 +1,14 @@
 plugins {
     id 'kotlin-multiplatform'
+    id "com.jfrog.bintray" version "1.8.4"
+
 }
 
 apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
-    maven { url "https://jitpack.io" }
+    maven { url  "https://dl.bintray.com/skerna/maven" }
 }
 kotlin {
     jvm {
@@ -27,7 +29,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-common"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$kotlinCoroutinesVersion"
-                api "com.gitlab.skerna.libs:commons-slbase-metadata:$skernaVersion"
+                api "io.skerna.libs:commons-slbase-metadata:$skernaVersion"
             }
         }
         commonTest {
@@ -40,7 +42,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
-                api "com.gitlab.skerna.libs:commons-slbase-jvm:$skernaVersion"
+                api "io.skerna.libs:commons-slbase-jvm:$skernaVersion"
             }
         }
         jvmTest {
@@ -55,7 +57,7 @@ kotlin {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlinCoroutinesVersion"
-                api "com.gitlab.skerna.libs:commons-slbase-js:$skernaVersion"
+                api "io.skerna.libs:commons-slbase-js:$skernaVersion"
             }
         }
         jsTest {
@@ -83,3 +85,5 @@ compileTestKotlinJs {
     kotlinOptions.moduleKind = 'umd'
     kotlinOptions.sourceMapEmbedSources = 'always'
 }
+
+apply from: "./gradle/publish.gradle"
