@@ -24,9 +24,12 @@ publishing {
 }
 
 
+
 bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
+    user = BINTRAY_USER
+    key = BINTRAY_KEY
+
+    print("USER BINTRAY $BINTRAY_USER" )
     override = true // for multi-platform Kotlin/Native publishing
     configurations = ['archives']
     pkg {
@@ -45,6 +48,7 @@ bintray {
         }
     }
 }
+
 // TODO :kludge this is required for K/N publishing
 bintrayUpload.dependsOn publishToMavenLocal
 

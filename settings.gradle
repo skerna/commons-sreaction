@@ -1,16 +1,10 @@
 pluginManagement {
-    resolutionStrategy {
-
-        eachPlugin {
-            if (requested.id.id == "kotlin-multiplatform") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-            }
-            if (requested.id.id == "kotlin-platform-jvm") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-            }
-        }
+    plugins {
+        id 'org.jetbrains.kotlin.multiplatform' version "$kotlin_version"
+        id 'com.jfrog.bintray' version "$jfrog_version"
     }
 }
+
 def isUncluded = gradle.parent != null
 if(isUncluded){
     includeBuild("../commons-slbase"){

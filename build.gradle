@@ -1,6 +1,6 @@
 plugins {
-    id 'kotlin-multiplatform'
-    id "com.jfrog.bintray" version "1.8.4"
+    id 'org.jetbrains.kotlin.multiplatform'
+    id "com.jfrog.bintray"
 
 }
 
@@ -28,8 +28,8 @@ kotlin {
         commonMain {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-common"
-                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:commons-slbase-metadata:$skernaVersion"
+                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$kotlin_coroutines_version"
+                api "io.skerna.libs:commons-slbase-metadata:$skerna_slbase_version"
             }
         }
         commonTest {
@@ -41,8 +41,8 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib"
-                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:commons-slbase-jvm:$skernaVersion"
+                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+                api "io.skerna.libs:commons-slbase-jvm:$skerna_slbase_version"
             }
         }
         jvmTest {
@@ -56,8 +56,8 @@ kotlin {
         jsMain {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
-                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlinCoroutinesVersion"
-                api "io.skerna.libs:commons-slbase-js:$skernaVersion"
+                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlin_coroutines_version"
+                api "io.skerna.libs:commons-slbase-js:$skerna_slbase_version"
             }
         }
         jsTest {
@@ -86,4 +86,5 @@ compileTestKotlinJs {
     kotlinOptions.sourceMapEmbedSources = 'always'
 }
 
-apply from: "./gradle/publish.gradle"
+apply from: project.file("gradle/publish.gradle")
+apply from: project.file("gradle/wrapper.gradle")
