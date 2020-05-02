@@ -7,6 +7,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url  "https://dl.bintray.com/skerna/maven" }
 }
@@ -85,6 +86,5 @@ compileTestKotlinJs {
     kotlinOptions.moduleKind = 'umd'
     kotlinOptions.sourceMapEmbedSources = 'always'
 }
-
+apply from: project.file("gradle/configuration.gradle")
 apply from: project.file("gradle/publish.gradle")
-apply from: project.file("gradle/wrapper.gradle")

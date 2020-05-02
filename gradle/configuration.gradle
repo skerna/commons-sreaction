@@ -1,3 +1,7 @@
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
 task wrapperUpdate(type: Wrapper) {
     gradleVersion = gradleVersion //version required
 }

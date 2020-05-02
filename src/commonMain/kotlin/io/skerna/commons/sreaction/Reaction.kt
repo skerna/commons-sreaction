@@ -58,6 +58,21 @@ interface Reaction<T> : ReactionResult<T>, Handler<ReactionResult<T>> {
     @JsName("setExceptionHandler")
     fun setExceptionHandler(exHandler: (asyncResult:Throwable)->Unit): Reaction<T>
 
+    /**
+     * Attach observer to completable result
+     *
+     * if the reaction has been completed, observer is notified immediately. otherwise it will called when sreaction
+     * is completed, if handler is not defined the param is passed set as Main handler
+     * @param handler
+     */
+    fun watchResult(handler: Handler<ReactionResult<T>>):Reaction<T>
+
+
+    @JsName("watchResult")
+    fun watchResult(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T> = apply{
+        var handlerParsed = Handler.create(handler)
+        watchResult(handlerParsed)
+    }
 
     /**
      * Set a handler for the result.
@@ -72,7 +87,10 @@ interface Reaction<T> : ReactionResult<T>, Handler<ReactionResult<T>> {
     fun setHandler(handler: Handler<ReactionResult<T>>): Reaction<T>
 
     @JsName("setHandler")
-    fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T>
+    fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit): Reaction<T> = apply {
+        val handlerParsed = Handler.create(handler)
+        setHandler(handlerParsed)
+    }
 
     /**
      * Set the result. Any handler will be called, if there is one, and the reaction will be marked as completed.

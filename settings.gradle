@@ -5,13 +5,10 @@ pluginManagement {
     }
 }
 
-def isUncluded = gradle.parent != null
-if(isUncluded){
-    includeBuild("../commons-slbase"){
-        dependencySubstitution {
-            substitute module('io.skerna.libs:commons-slbase-metadata') with project(':')
-            substitute module('io.skerna.libs:commons-slbase-jvm') with project(':')
-            substitute module('io.skerna.libs:commons-slbase-js') with project(':')
-        }
+includeBuild("../commons-slbase"){
+    dependencySubstitution {
+        substitute module('io.skerna.libs:commons-slbase-metadata') with project(':')
+        substitute module('io.skerna.libs:commons-slbase-jvm') with project(':')
+        substitute module('io.skerna.libs:commons-slbase-js') with project(':')
     }
 }

@@ -118,4 +118,15 @@ class SucceededReaction<T>(private val result: T) : Reaction<T> {
     override fun toString(): String {
         return "Reaction{result=$result}"
     }
+
+    /**
+     * Attach observer to completable result
+     *
+     * if the reaction has been completed, observer is notified immediately. otherwise it will called when sreaction
+     * is completed, if handler is not defined the param is passed set as Main handler
+     * @param handler
+     */
+    override fun watchResult(handler: Handler<ReactionResult<T>>): Reaction<T> {
+        throw IllegalStateException("Result is already complete: succeeded")
+    }
 }

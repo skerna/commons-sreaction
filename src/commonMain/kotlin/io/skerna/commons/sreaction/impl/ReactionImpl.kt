@@ -38,6 +38,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
     private var failed: Boolean = false
     private var succeeded: Boolean = false
     private var handler: Handler<ReactionResult<T>>? = null
+    private var sharedHandlers:MutableSet<Handler<ReactionResult<T>>>?=null
     private var result: T? = null
     private var throwable: Throwable? = null
     private var handlerException: Handler<Throwable>? = null
@@ -106,7 +107,6 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
      */
     override fun setHandler(handler: Handler<ReactionResult<T>>) = apply{
         var callHandler: Boolean = isCompleted()
-
         synchronized(this) {
             if (!callHandler) {
                 this.handler = handler
@@ -117,10 +117,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
         }
     }
 
-    override fun setHandler(handler: (reactionResult: ReactionResult<T>) -> Unit) =  apply{
-        var handlerParsed = Handler.create(handler)
-        setHandler(handlerParsed)
-    }
+
 
     @Synchronized
     override fun getHandler(): Handler<ReactionResult<T>> {
@@ -164,9 +161,8 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
             handler = null
         }
 
-        if (h != null) {
-           h.handle(this)
-        }
+        h?.handle(this)
+        sharedHandlers?.forEach { it.handle(this) }
         return true
     }
 
@@ -213,6 +209,7 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
         if (h != null) {
             h?.handle(this)?:throw IllegalStateException("Handler not initialized")
         }
+        sharedHandlers?.forEach { it.handle(this) }
         return true
     }
 
@@ -238,5 +235,28 @@ internal class ReactionImpl<T> : Reaction<T>, Handler<ReactionResult<T>> {
      */
     override fun tryComplete(): Boolean {
         return tryComplete(null)
+    }
+
+    /**
+     * Attach observer to completable result
+     *
+     * if the reaction has been completed, observer is notified immediately. otherwise it will called when sreaction
+     * is completed, if handler is not defined the param is passed set as Main handler
+     * @param handler
+     */
+    override fun watchResult(handler: Handler<ReactionResult<T>>): Reaction<T> = apply {
+        // Si no ha sido completado y pero existe un handler asigando
+        if(!isCompleted() && this.handler==null){
+            setHandler(handler)
+        }else if(!isCompleted()){
+            synchronized(this){
+                if(sharedHandlers == null){
+                    sharedHandlers = mutableSetOf()
+                }
+                sharedHandlers!!.add(handler)
+            }
+        }else{
+            handler.handle(this)
+        }
     }
 }
